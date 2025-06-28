@@ -28,9 +28,11 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const StaffManagementPage = () => {
     const { user, verifyEmail } = useAuth();
+    const navigate = useNavigate();
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -109,32 +111,32 @@ const StaffManagementPage = () => {
     const handleAddStaff = async () => {
         try {
             const maChuSan = user?.id || user?.unique_name || user?.nameid || '';
-            const submitData = { ...newStaffData, maChuSan, email: newStaffData.username, tenVaiTro: 'Nhân viên' };
+            // Chuẩn hóa payload đúng mẫu swagger
+            const submitData = {
+                maNhanVien: 'NV' + Date.now(),
+                username: newStaffData.username,
+                password: newStaffData.password,
+                hoTen: newStaffData.hoTen,
+                ngaySinh: newStaffData.ngaySinh ? new Date(newStaffData.ngaySinh).toISOString() : '',
+                email: newStaffData.username,
+                gioiTinh: newStaffData.gioiTinh,
+                soDienThoai: newStaffData.soDienThoai,
+                tenVaiTro: 'Nhân viên',
+                maSanBong: newStaffData.maSanBong
+            };
             const response = await axiosInstance.post('/api/chusan-create-employee', submitData);
             if (response.data.isSuccess) {
-                setPendingVerifyEmail(newStaffData.username);
-                setVerifyDialogOpen(true);
-                // Không fetchStaff và đóng dialog ngay, chờ xác thực email xong mới làm
+                handleClose();
+                // Điều hướng sang trang xác thực email
+                setTimeout(() => {
+                    navigate('/email-verification', { state: { email: newStaffData.username } });
+                }, 500);
+                fetchStaff();
             } else {
                 setError(response.data.errorMessages.join(', '));
             }
         } catch (err) {
             setError('Failed to create staff member.');
-        }
-    };
-
-    const handleVerifyEmail = async () => {
-        setVerifyError('');
-        if (!verifyCode || !pendingVerifyEmail) return;
-        const result = await verifyEmail(pendingVerifyEmail, verifyCode);
-        if (result.success) {
-            setVerifyDialogOpen(false);
-            setVerifyCode('');
-            setPendingVerifyEmail('');
-            fetchStaff();
-            handleClose();
-        } else {
-            setVerifyError(result.error || 'Xác thực email thất bại!');
         }
     };
 
@@ -212,6 +214,7 @@ const StaffManagementPage = () => {
     </FormControl>
     <TextField margin="dense" name="username" label="Tên đăng nhập (email)" type="email" fullWidth variant="standard" onChange={handleInputChange} required />
     <TextField margin="dense" name="password" label="Mật khẩu" type="password" fullWidth variant="standard" onChange={handleInputChange} required />
+    <TextField margin="dense" name="ngaySinh" label="Ngày sinh" type="date" fullWidth variant="standard" onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
     <FormControl fullWidth margin="dense" variant="standard" required>
         <InputLabel id="maSanBong-label">Sân bóng</InputLabel>
         <Select labelId="maSanBong-label" name="maSanBong" value={newStaffData.maSanBong} onChange={handleInputChange} label="Sân bóng">
@@ -226,29 +229,6 @@ const StaffManagementPage = () => {
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
                     <Button onClick={handleAddStaff} variant="contained">Add</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Verify Email Dialog */}
-            <Dialog open={verifyDialogOpen} onClose={() => setVerifyDialogOpen(false)}>
-                <DialogTitle>Xác thực email nhân viên</DialogTitle>
-                <DialogContent>
-                    <Typography>Nhập mã xác thực đã gửi về email: <b>{pendingVerifyEmail}</b></Typography>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Mã xác thực"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={verifyCode}
-                        onChange={e => setVerifyCode(e.target.value)}
-                    />
-                    {verifyError && <Alert severity="error" sx={{ mt: 2 }}>{verifyError}</Alert>}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setVerifyDialogOpen(false)}>Hủy</Button>
-                    <Button onClick={handleVerifyEmail} variant="contained">Xác thực</Button>
                 </DialogActions>
             </Dialog>
         </Container>

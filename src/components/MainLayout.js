@@ -82,6 +82,20 @@ const MainLayout = ({ children }) => {
             <Toolbar />
             <Divider />
             {user && <NavList role={user.role} />}
+            <Divider sx={{ my: 2 }} />
+            {user && (
+                <List>
+                    <ListItem button onClick={() => {
+                        if (user?.role === 'ADMIN') navigate('/admin/profile');
+                        else if (user?.role === 'CHỦ SÂN') navigate('/owner/profile');
+                        else if (user?.role === 'NHÂN VIÊN') navigate('/staff/profile');
+                        else if (user?.role === 'KHÁCH HÀNG') navigate('/customer/profile');
+                    }}>
+                        <ListItemIcon><AccountCircleIcon /></ListItemIcon>
+                        <ListItemText primary="Edit Profile" />
+                    </ListItem>
+                </List>
+            )}
         </div>
     );
 
@@ -102,13 +116,9 @@ const MainLayout = ({ children }) => {
                     <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                         {user?.role} Dashboard
                     </Typography>
-                    <Typography sx={{ mr: 2 }}>Welcome, {user?.fullName}</Typography>
-                    <Button color="inherit" startIcon={<AccountCircleIcon />} sx={{ mr: 1 }} onClick={() => {
-                        if (user?.role === 'ADMIN') navigate('/admin/profile');
-                        else if (user?.role === 'CHỦ SÂN') navigate('/owner/profile');
-                        else if (user?.role === 'NHÂN VIÊN') navigate('/staff/profile');
-                        else if (user?.role === 'KHÁCH HÀNG') navigate('/customer/profile');
-                    }}>Edit Profile</Button>
+                    <Typography sx={{ mr: 2, fontWeight: 600, fontSize: 18 }}>
+                        {user?.fullName || user?.hoTen || user?.username || ''}
+                    </Typography>
                     <Button color="inherit" onClick={handleLogout}>Logout</Button>
                 </Toolbar>
             </AppBar>

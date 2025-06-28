@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import axiosInstance from '../../api/axiosInstance';
 
 const slotCardStyle = (selected) => ({
@@ -154,7 +154,8 @@ const StaffFieldDetailPage = () => {
 
   return (
     <Fade in timeout={700}>
-      <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
+      {/* <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}> */}
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, flexWrap: 'wrap' }}>
           <Avatar
             variant="rounded"
@@ -179,7 +180,7 @@ const StaffFieldDetailPage = () => {
             <Grid item xs={12}><Alert severity="info">Không có khung giờ nào cho sân này.</Alert></Grid>
           )}
           {schedules.map((slot, idx) => (
-            <Grid item xs={12} sm={4} key={slot.mainChiSan}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={slot.mainChiSan}>
               <Fade in timeout={400 + idx * 80}>
                 <Card sx={slotCardStyle(selectedSlot === slot)} onClick={() => slot.trangThai === 'AVAILABLE' && setSelectedSlot(slot)}>
                   <CardContent>
@@ -220,11 +221,19 @@ const StaffFieldDetailPage = () => {
         <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
           <DialogTitle>Tạo lịch trống mới</DialogTitle>
           <DialogContent>
-            <TextField
-              margin="dense" label="Mã sân con" type="text" fullWidth
-              value={newSchedule.maSanCon} onChange={e => setNewSchedule({ ...newSchedule, maSanCon: e.target.value })}
-              placeholder="Nhập mã sân con (xem danh sách sân con ở trên)"
-            />
+            <FormControl fullWidth margin="dense" variant="standard" required>
+              <InputLabel id="maSanCon-label">Mã sân con</InputLabel>
+              <Select
+                labelId="maSanCon-label"
+                value={newSchedule.maSanCon}
+                onChange={e => setNewSchedule({ ...newSchedule, maSanCon: e.target.value })}
+                label="Mã sân con"
+              >
+                {subFields.map((sf) => (
+                  <MenuItem key={sf.maSanCon} value={sf.maSanCon}>{sf.maSanCon} - {sf.tenSanCon || ''}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               margin="dense" label="Ngày" type="date" fullWidth
               value={newSchedule.ngay} onChange={e => setNewSchedule({ ...newSchedule, ngay: e.target.value })}

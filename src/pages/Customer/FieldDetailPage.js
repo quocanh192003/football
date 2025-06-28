@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, TextField, Chip, Fade, Avatar } from '@mui/material';
+import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, TextField, Chip, Fade, Avatar, Rating } from '@mui/material';
 import axiosInstance from '../../api/axiosInstance';
 
 const fadeIn = {
@@ -37,6 +37,7 @@ const FieldDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [evaluates, setEvaluates] = useState([]);
 
   useEffect(() => {
     const fetchFieldDetails = async () => {
@@ -79,6 +80,22 @@ const FieldDetailPage = () => {
       }
     };
     fetchSchedules();
+  }, [fieldId]);
+
+  useEffect(() => {
+    const fetchEvaluates = async () => {
+      try {
+        const res = await axiosInstance.get(`/api/get-evaluate-by-id-san-bong/${fieldId}`);
+        if (res.data.isSuccess) {
+          setEvaluates(res.data.result || []);
+        } else {
+          setEvaluates([]);
+        }
+      } catch (err) {
+        setEvaluates([]);
+      }
+    };
+    fetchEvaluates();
   }, [fieldId]);
 
   const handleBook = () => {
@@ -165,6 +182,23 @@ const FieldDetailPage = () => {
             ĐẶT SÂN NGAY
           </Button>
           {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
+        </Box>
+        <Box mt={6}>
+          <Typography variant="h5" sx={{ mb: 2 }}>Đánh giá của khách hàng</Typography>
+          {evaluates.length === 0 ? (
+            <Alert severity="info">Chưa có đánh giá nào cho sân này.</Alert>
+          ) : (
+            evaluates.map(ev => (
+              <Box key={ev.maDanhGia} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Rating value={ev.soSao} readOnly size="small" />
+                  <Typography variant="body2" sx={{ ml: 2, fontWeight: 600 }}>{ev.nguoiDanhGia || 'Ẩn danh'}</Typography>
+                  <Typography variant="caption" sx={{ ml: 2, color: 'gray' }}>{ev.ngayDanhGia ? new Date(ev.ngayDanhGia).toLocaleDateString() : ''}</Typography>
+                </Box>
+                <Typography variant="body1">{ev.binhLuan}</Typography>
+              </Box>
+            ))
+          )}
         </Box>
       </Container>
     </Fade>

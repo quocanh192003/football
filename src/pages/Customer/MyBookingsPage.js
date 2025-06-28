@@ -107,7 +107,7 @@ const MyBookingsPage = () => {
             const response = await axiosInstance.post(`/api/create-evaluate/${selectedBooking.pitchId}`,
               {
                 soSao: rating,
-                noiDung: comment
+                binhLuan: comment
               }
             );
             if (response.data.isSuccess) {
@@ -148,7 +148,7 @@ const MyBookingsPage = () => {
                     </TableHead>
                     <TableBody>
                         {bookings.length > 0 ? bookings.map((booking) => {
-                            const isPast = new Date(booking.orderDate) < new Date();
+                            const isPast = true; // Luôn cho phép đánh giá để test
                             return (
                                 <TableRow key={booking.bookingDetailId}>
                                     <TableCell>{booking.pitchName}</TableCell>
@@ -163,7 +163,7 @@ const MyBookingsPage = () => {
                                                 Cancel
                                             </Button>
                                         )}
-                                        {isPast && booking.status === 'DAXACNHAN' && !booking.isRated && (
+                                        {isPast && (booking.status === 'DAXACNHAN' || booking.status === 'CONFIRMED') && !booking.isRated && (
                                             <Button size="small" variant="contained" color="primary" onClick={() => handleOpenRateModal(booking)}>
                                                 Rate
                                             </Button>
