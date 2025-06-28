@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Container, Typography, Box, Grid, Card, CardContent, Button, Divider, List, 
     ListItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, 
-    TextField, IconButton, Paper, Avatar 
+    TextField, IconButton, Paper, Avatar, Alert 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -51,6 +51,8 @@ const OwnerDashboard = () => {
     const [revenueChartData, setRevenueChartData] = useState([]);
     const [revenueToday, setRevenueToday] = useState(0);
     const [bookingsToday, setBookingsToday] = useState(0);
+    const [addPitchError, setAddPitchError] = useState('');
+    const [addPitchSuccess, setAddPitchSuccess] = useState('');
     
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -68,7 +70,7 @@ const OwnerDashboard = () => {
                 const fieldsData = fieldsRes.data.result || [];
                 const maChuSan = user?.id || user?.unique_name || user?.nameid || '';
                 const ownerFields = fieldsData.filter(f => String(f.maChuSan) === String(maChuSan));
-                setFields(ownerFields.map(f => ({ id: f.id || f.maSanBong, name: f.name || f.tenSanBong, address: f.address || f.diaChi, status: f.status || f.trangThai })));
+                setFields(ownerFields.map(f => ({ id: f.id || f.maSanBong, maSanBong: f.maSanBong, name: f.name || f.tenSanBong, address: f.address || f.diaChi, status: f.status || f.trangThai })));
 
                 // Orders: get all CONFIRMED orders
                 const ordersRes = await axiosInstance.get('/api/order/get-all-order-by-status', { params: { status: 'CONFIRMED' } });
@@ -174,19 +176,42 @@ const OwnerDashboard = () => {
         setNewPitch({ tenSanBongCon: '', loaiSan: '' });
     };
     const handleAddPitch = async () => {
-        if (!newPitch.tenSanBongCon || !newPitch.loaiSan) return;
+        setAddPitchError('');
+        setAddPitchSuccess('');
+        if (!newPitch.tenSanBongCon || !newPitch.loaiSan) {
+            setAddPitchError('Vui lòng nhập đầy đủ tên sân con và loại sân!');
+            return;
+        }
         try {
+            // Tìm số thứ tự tiếp theo cho sân con
+            let nextIndex = 1;
+            if (pitches && pitches.length > 0) {
+                const numbers = pitches
+                    .map(p => {
+                        const match = (p.maSanCon || '').match(/_san(\d+)$/);
+                        return match ? parseInt(match[1], 10) : null;
+                    })
+                    .filter(n => n !== null);
+                if (numbers.length > 0) {
+                    nextIndex = Math.max(...numbers) + 1;
+                }
+            }
+            const newMaSanCon = `${selectedField.maSanBong}_san${nextIndex}`;
             await axiosInstance.post('/api/football/create-detailfootball', {
-                maSanBong: selectedField.id || selectedField.maSanBong,
-                maSanCon: 'MSC' + Date.now(),
-                tenSanCon: newPitch.tenSanBongCon,
+                maSanBong: selectedField.maSanBong,
+                maSanCon: newMaSanCon,
+                tenSanCon: `${selectedField.name} - ${newPitch.tenSanBongCon}`,
                 loaiSanCon: newPitch.loaiSan,
+                trangThaiSan: 'AVAILABLE',
             });
+            setAddPitchSuccess('Thêm sân con thành công!');
             handleCloseAddPitchDialog();
+            setNewPitch({ tenSanBongCon: '', loaiSan: '' });
+            setAddPitchError('');
             // Reload pitches
             handleOpenPitchDialog(selectedField);
         } catch (err) {
-            alert('Không thể thêm sân con');
+            setAddPitchError('Không thể thêm sân con. Vui lòng thử lại!');
         }
     };
 
@@ -368,10 +393,12 @@ const OwnerDashboard = () => {
                         margin="dense" label="Loại sân (e.g., 5v5, 7v7)" type="text" fullWidth
                         value={newPitch.loaiSan} onChange={e => setNewPitch({ ...newPitch, loaiSan: e.target.value })}
                     />
+                    {addPitchError && <Typography color="error" sx={{ mt: 1 }}>{addPitchError}</Typography>}
+                    {addPitchSuccess && <Alert severity="success" sx={{ mt: 1 }}>{addPitchSuccess}</Alert>}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseAddPitchDialog}>Hủy</Button>
-                    <Button onClick={handleAddPitch}>Thêm</Button>
+                    <Button onClick={handleAddPitch} variant="contained">Tạo sân con</Button>
                 </DialogActions>
             </Dialog>
             {/* Dialog to Add Slot */}

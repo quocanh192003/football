@@ -5,6 +5,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 
@@ -114,6 +115,14 @@ const StaffDashboard = () => {
                                     onClick={() => navigate('/staff/manage-bookings')}
                                 >
                                     Manage All Bookings
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<ScheduleIcon />}
+                                    color="secondary"
+                                    onClick={() => navigate('/staff/fields')}
+                                >
+                                    Tạo lịch đặt sân
                                 </Button>
                             </Box>
                         </Card>

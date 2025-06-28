@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar } from '@mui/material';
+import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import axiosInstance from '../../api/axiosInstance';
 
 const slotCardStyle = (selected) => ({
@@ -29,6 +29,10 @@ const StaffFieldDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newSchedule, setNewSchedule] = useState({ maSanCon: '', ngay: '', thoiGianBatDau: '', thoiGianKetThuc: '', gia: '' });
+  const [createError, setCreateError] = useState('');
+  const [createSuccess, setCreateSuccess] = useState('');
 
   useEffect(() => {
     const fetchFieldDetails = async () => {
@@ -89,6 +93,60 @@ const StaffFieldDetailPage = () => {
         }
       }
     });
+  };
+
+  const handleOpenCreateDialog = () => {
+    setCreateDialogOpen(true);
+    setNewSchedule({ maSanCon: '', ngay: '', thoiGianBatDau: '', thoiGianKetThuc: '', gia: '' });
+    setCreateError('');
+    setCreateSuccess('');
+  };
+
+  const handleCloseCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setNewSchedule({ maSanCon: '', ngay: '', thoiGianBatDau: '', thoiGianKetThuc: '', gia: '' });
+    setCreateError('');
+    setCreateSuccess('');
+  };
+
+  const handleCreateSchedule = async () => {
+    setCreateError('');
+    setCreateSuccess('');
+    if (!newSchedule.maSanCon || !newSchedule.ngay || !newSchedule.thoiGianBatDau || !newSchedule.thoiGianKetThuc || !newSchedule.gia) {
+      setCreateError('Vui lòng nhập đầy đủ thông tin!');
+      return;
+    }
+    try {
+      const date = new Date(newSchedule.ngay);
+      const [startHour, startMinute] = newSchedule.thoiGianBatDau.split(':').map(Number);
+      const [endHour, endMinute] = newSchedule.thoiGianKetThuc.split(':').map(Number);
+      const startDateTime = new Date(date);
+      startDateTime.setHours(startHour, startMinute, 0, 0);
+      const endDateTime = new Date(date);
+      endDateTime.setHours(endHour, endMinute, 0, 0);
+      const daysVN = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+      const thu = daysVN[date.getDay()];
+      await axiosInstance.post('/api/create-schedule', {
+        maLichSan: 'MLS' + Date.now(),
+        maSanCon: newSchedule.maSanCon,
+        maSanBong: field.maSanBong,
+        thu,
+        gioBatDau: newSchedule.thoiGianBatDau.length === 5 ? newSchedule.thoiGianBatDau + ':00' : newSchedule.thoiGianBatDau,
+        gioKetThuc: newSchedule.thoiGianKetThuc.length === 5 ? newSchedule.thoiGianKetThuc + ':00' : newSchedule.thoiGianKetThuc,
+        giaThue: Number(newSchedule.gia),
+      });
+      setCreateSuccess('Tạo lịch thành công!');
+      setCreateDialogOpen(false);
+      // Reload schedules
+      setLoading(true);
+      const res = await axiosInstance.get('/api/get-all-schedule');
+      if (res.data.isSuccess) {
+        const filtered = res.data.result.filter(sch => sch.maSanBong.toLowerCase() === fieldId.toLowerCase());
+        setSchedules(filtered);
+      }
+    } catch (err) {
+      setCreateError('Không thể tạo lịch. Vui lòng thử lại!');
+    }
   };
 
   if (loading) return <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8 }}><CircularProgress size={48} /><Typography sx={{ mt: 2, color: '#388e3c', fontWeight: 500, letterSpacing: 1 }}>Đang tải dữ liệu...</Typography></Box>;
@@ -155,6 +213,45 @@ const StaffFieldDetailPage = () => {
           </Button>
           {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
         </Box>
+        <Box mt={2} mb={2} textAlign="right">
+          <Button variant="contained" color="primary" onClick={handleOpenCreateDialog}>Tạo lịch trống</Button>
+        </Box>
+        {/* Dialog tạo lịch trống */}
+        <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
+          <DialogTitle>Tạo lịch trống mới</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense" label="Mã sân con" type="text" fullWidth
+              value={newSchedule.maSanCon} onChange={e => setNewSchedule({ ...newSchedule, maSanCon: e.target.value })}
+              placeholder="Nhập mã sân con (xem danh sách sân con ở trên)"
+            />
+            <TextField
+              margin="dense" label="Ngày" type="date" fullWidth
+              value={newSchedule.ngay} onChange={e => setNewSchedule({ ...newSchedule, ngay: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              margin="dense" label="Giờ bắt đầu" type="time" fullWidth
+              value={newSchedule.thoiGianBatDau} onChange={e => setNewSchedule({ ...newSchedule, thoiGianBatDau: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              margin="dense" label="Giờ kết thúc" type="time" fullWidth
+              value={newSchedule.thoiGianKetThuc} onChange={e => setNewSchedule({ ...newSchedule, thoiGianKetThuc: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              margin="dense" label="Giá thuê (VNĐ)" type="number" fullWidth
+              value={newSchedule.gia} onChange={e => setNewSchedule({ ...newSchedule, gia: e.target.value })}
+            />
+            {createError && <Typography color="error" sx={{ mt: 1 }}>{createError}</Typography>}
+            {createSuccess && <Typography color="success.main" sx={{ mt: 1 }}>{createSuccess}</Typography>}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseCreateDialog}>Hủy</Button>
+            <Button onClick={handleCreateSchedule} variant="contained">Tạo lịch</Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Fade>
   );
