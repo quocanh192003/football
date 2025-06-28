@@ -171,6 +171,9 @@ const StaffFieldDetailPage = () => {
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Số lượng sân con: <b>{subFields.length}</b></Typography>
           </Box>
         </Box>
+        <Box mt={2} mb={2} textAlign="right">
+          <Button variant="contained" color="primary" onClick={handleOpenCreateDialog}>Tạo lịch trống</Button>
+        </Box>
         <Grid container spacing={3}>
           {schedules.length === 0 && (
             <Grid item xs={12}><Alert severity="info">Không có khung giờ nào cho sân này.</Alert></Grid>
@@ -212,9 +215,6 @@ const StaffFieldDetailPage = () => {
             ĐẶT SÂN NGAY
           </Button>
           {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
-        </Box>
-        <Box mt={2} mb={2} textAlign="right">
-          <Button variant="contained" color="primary" onClick={handleOpenCreateDialog}>Tạo lịch trống</Button>
         </Box>
         {/* Dialog tạo lịch trống */}
         <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
