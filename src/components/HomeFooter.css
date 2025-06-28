@@ -1,0 +1,16 @@
+.home-footer {
+    background-color: #1a251a; /* Dark green, almost black */
+    color: white;
+    padding: 60px 0;
+}
+
+.footer-link {
+    color: #ccc;
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+}
+
+.footer-link:hover {
+    color: white;
+}

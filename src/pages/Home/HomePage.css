@@ -1,0 +1,123 @@
+General Body Styles
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+.home-page {
+    overflow-x: hidden;
+}
+
+
+.nav-link {
+    color: white !important;
+    margin: 0 15px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #4caf50 !important;
+}
+
+/* Hero Section */
+.hero-section {
+    height: 90vh;
+    background: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.hero-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content h1 {
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+}
+
+/* Section Styles */
+.home-section {
+    padding: 80px 0;
+}
+
+.section-title {
+    margin-bottom: 50px !important;
+    font-weight: 700 !important;
+    text-align: center;
+}
+
+/* Featured Fields Slider */
+.slick-slide > div {
+    margin: 0 15px;
+}
+
+.slick-list {
+    margin: 0 -15px;
+}
+
+.field-card-featured {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.field-card-featured:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
+}
+
+/* How It Works Section */
+.step-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.step-icon {
+    font-size: 3rem !important;
+    color: #4caf50;
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+.home-footer {
+    background-color: #212121;
+    color: white;
+    padding: 50px 0;
+}
+
+.footer-link {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: white;
+}
+
+.cta-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=1907&auto=format&fit=crop') no-repeat center center/cover;
+    border-radius: 12px;
+    margin: 40px 20px;
+    padding-top: 60px !important;
+    padding-bottom: 60px !important;
+}

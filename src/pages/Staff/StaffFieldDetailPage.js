@@ -1,0 +1,163 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar } from '@mui/material';
+import axiosInstance from '../../api/axiosInstance';
+
+const slotCardStyle = (selected) => ({
+  border: selected ? '2px solid #388e3c' : '1px solid #e0e0e0',
+  borderRadius: 3,
+  boxShadow: selected ? '0 4px 24px 0 rgba(56, 142, 60, 0.15)' : '0 2px 8px 0 rgba(0,0,0,0.07)',
+  transition: 'all 0.25s',
+  cursor: 'pointer',
+  position: 'relative',
+  overflow: 'hidden',
+  background: selected ? 'linear-gradient(90deg, #e8f5e9 0%, #fff 100%)' : '#fff',
+  '&:hover': {
+    boxShadow: '0 6px 24px 0 rgba(56, 142, 60, 0.18)',
+    transform: 'scale(1.03)',
+    zIndex: 2,
+  },
+});
+
+const StaffFieldDetailPage = () => {
+  const { fieldId } = useParams();
+  const navigate = useNavigate();
+  const [field, setField] = useState(null);
+  const [subFields, setSubFields] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const fetchFieldDetails = async () => {
+      setLoading(true);
+      try {
+        const fieldRes = await axiosInstance.get(`/api/football/get-all-football`);
+        const currentField = fieldRes.data.result.find(f => f.maSanBong === fieldId);
+        setField(currentField);
+        const subFieldRes = await axiosInstance.get(`/api/football/get-all-detailfootball`);
+        const currentSubFields = subFieldRes.data.result.filter(sf => sf.maSanBong === fieldId);
+        setSubFields(currentSubFields);
+      } catch (err) {
+        setError('Không thể tải thông tin sân bóng.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFieldDetails();
+  }, [fieldId]);
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      setLoading(true);
+      try {
+        const res = await axiosInstance.get('/api/get-all-schedule');
+        if (res.data.isSuccess) {
+          const filtered = res.data.result.filter(
+            sch => sch.maSanBong.toLowerCase() === fieldId.toLowerCase()
+          );
+          setSchedules(filtered);
+        } else {
+          setSchedules([]);
+        }
+      } catch (err) {
+        setError('Không thể tải khung giờ sân.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSchedules();
+  }, [fieldId]);
+
+  const handleBook = () => {
+    if (!selectedSlot) return;
+    setError('');
+    setSuccess('');
+    navigate('/staff/booking-confirmation', {
+      state: {
+        bookingDetails: {
+          fieldId: field.maSanBong,
+          fieldName: field.tenSanBong,
+          pitchId: selectedSlot.maSanCon,
+          pitchName: selectedSlot.maSanCon,
+          date: new Date().toISOString().slice(0, 10),
+          startTime: selectedSlot.gioBatDau,
+          endTime: selectedSlot.gioKetThuc,
+          price: selectedSlot.giaThue || 0,
+        }
+      }
+    });
+  };
+
+  if (loading) return <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8 }}><CircularProgress size={48} /><Typography sx={{ mt: 2, color: '#388e3c', fontWeight: 500, letterSpacing: 1 }}>Đang tải dữ liệu...</Typography></Box>;
+  if (error) return <Alert severity="error" sx={{ mt: 4 }}>{error}</Alert>;
+
+  return (
+    <Fade in timeout={700}>
+      <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+          <Avatar
+            variant="rounded"
+            src={field?.hinhAnh || '/default-field.jpg'}
+            alt={field?.tenSanBong}
+            sx={{ width: 96, height: 96, boxShadow: 2, border: '2px solid #388e3c', bgcolor: '#fff' }}
+          >
+            {field?.tenSanBong?.[0]}
+          </Avatar>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 700, color: '#388e3c', mb: 0.5 }}>{field?.tenSanBong}</Typography>
+            <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>{field?.diaChi}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{field?.moTa}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Số lượng sân con: <b>{subFields.length}</b></Typography>
+          </Box>
+        </Box>
+        <Grid container spacing={3}>
+          {schedules.length === 0 && (
+            <Grid item xs={12}><Alert severity="info">Không có khung giờ nào cho sân này.</Alert></Grid>
+          )}
+          {schedules.map((slot, idx) => (
+            <Grid item xs={12} sm={4} key={slot.mainChiSan}>
+              <Fade in timeout={400 + idx * 80}>
+                <Card sx={slotCardStyle(selectedSlot === slot)} onClick={() => slot.trangThai === 'AVAILABLE' && setSelectedSlot(slot)}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ color: '#388e3c', fontWeight: 600 }}>{slot.maSanCon}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>Khung giờ: <b>{slot.gioBatDau} - {slot.gioKetThuc}</b></Typography>
+                    <Typography variant="body2">Giá: <b style={{ color: '#388e3c' }}>{slot.giaThue ? slot.giaThue.toLocaleString() : '---'}đ</b></Typography>
+                    <Chip label={slot.trangThai === 'BOOKED' ? 'Đã đặt' : 'Còn trống'} color={slot.trangThai === 'BOOKED' ? 'error' : 'success'} size="small" sx={{ mt: 1 }} />
+                    <Button
+                      fullWidth
+                      variant={selectedSlot === slot ? 'contained' : 'outlined'}
+                      color={selectedSlot === slot ? 'success' : 'primary'}
+                      sx={{ mt: 2, fontWeight: 600, letterSpacing: 1, transition: 'transform 0.2s', transform: selectedSlot === slot ? 'scale(1.05)' : 'none', boxShadow: selectedSlot === slot ? 2 : undefined }}
+                      disabled={slot.trangThai === 'BOOKED'}
+                      onClick={e => { e.stopPropagation(); if (slot.trangThai === 'AVAILABLE') setSelectedSlot(slot); }}
+                    >
+                      {selectedSlot === slot ? 'Đã chọn' : 'Chọn khung giờ'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Fade>
+            </Grid>
+          ))}
+        </Grid>
+        <Box mt={5} textAlign="center">
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            sx={{ px: 6, py: 1.5, fontWeight: 700, fontSize: 20, borderRadius: 3, boxShadow: 3, transition: 'all 0.2s', ':hover': { background: '#43a047', transform: 'scale(1.04)' } }}
+            disabled={!selectedSlot}
+            onClick={handleBook}
+          >
+            ĐẶT SÂN NGAY
+          </Button>
+          {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
+        </Box>
+      </Container>
+    </Fade>
+  );
+};
+
+export default StaffFieldDetailPage; 
