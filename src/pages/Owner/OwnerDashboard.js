@@ -337,11 +337,7 @@ const OwnerDashboard = () => {
                             <Typography variant="h5" gutterBottom>My Fields</Typography>
                             <List>
                                 {fields.map((field) => (
-                                    <ListItem key={field.id} divider secondaryAction={
-                                        <Button variant="contained" onClick={() => handleOpenPitchDialog(field)}>
-                                            Manage Pitches
-                                        </Button>
-                                    }>
+                                    <ListItem >
                                         <ListItemText 
                                             primary={field.name} 
                                             secondary={`${field.address} - Status: ${field.status}`} 

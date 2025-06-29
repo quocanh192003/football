@@ -63,23 +63,24 @@ const CustomerDashboard = () => {
                     {filteredFields.length > 0 ? (
                         filteredFields.map((field) => (
                             <Grid item key={field.maSanBong} xs={12} sm={6} md={4}>
-                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <Card sx={{ height: 370, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 3 }}>
                                     <CardMedia
                                         component="img"
-                                        height="140"
+                                        height="160"
                                         image={(Array.isArray(field.hinhAnhs) && field.hinhAnhs[0]?.urlHinhAnh) || 'https://co-nhan-tao.com/wp-content/uploads/2019/12/thiet-ke-san-co-nhan-tao-14.jpg'}
                                         alt={field.tenSanBong}
+                                        sx={{ objectFit: 'cover' }}
                                     />
-                                    <CardContent sx={{ flexGrow: 1 }}>
-                                        <Typography gutterBottom variant="h5" component="h2">
+                                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                                        <Typography gutterBottom variant="h5" component="h2" sx={{ fontSize: 20, fontWeight: 600, minHeight: 32 }}>
                                             {field.tenSanBong}
                                         </Typography>
-                                        <Typography>
+                                        <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>
                                             {field.diaChi}
                                         </Typography>
                                     </CardContent>
-                                    <Box sx={{ p: 2 }}>
-                                        <Button size="small" variant="contained" onClick={() => handleViewDetails(field)}>
+                                    <Box sx={{ p: 2, pt: 0 }}>
+                                        <Button size="small" variant="contained" fullWidth onClick={() => handleViewDetails(field)}>
                                             View Details & Book
                                         </Button>
                                     </Box>

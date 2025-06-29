@@ -31,6 +31,7 @@ import ProfilePage from '../pages/Customer/ProfilePage';
 import OwnerProfilePage from '../pages/Owner/ProfilePage';
 import StaffProfilePage from '../pages/Staff/ProfilePage';
 import StaffBookingConfirmationPage from '../pages/Staff/BookingConfirmationPage';
+import SubFieldsPage from '../pages/Owner/SubFieldsPage';
 
 const AppRouter = () => {
     const { user } = useAuth();
@@ -68,6 +69,7 @@ const AppRouter = () => {
             <Route path="/owner" element={<ProtectedRoute allowedRoles={['CHỦ SÂN']}><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/fields" element={<ProtectedRoute allowedRoles={['CHỦ SÂN']}><MyFieldsPage /></ProtectedRoute>} />
             <Route path="/owner/field/:fieldId" element={<ProtectedRoute allowedRoles={['CHỦ SÂN']}><FieldEditPage /></ProtectedRoute>} />
+            <Route path="/owner/fields/:fieldId/subfields" element={<SubFieldsPage />} />
             <Route path="/owner/staff" element={<ProtectedRoute allowedRoles={['CHỦ SÂN']}><StaffManagementPage /></ProtectedRoute>} />
             <Route path="/owner/profile" element={<ProtectedRoute allowedRoles={['CHỦ SÂN']}><OwnerProfilePage /></ProtectedRoute>} />
 
