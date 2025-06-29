@@ -42,6 +42,7 @@ const StaffManagementPage = () => {
         hoTen: '',
         gioiTinh: '',
         username: '',
+        email: '',
         password: '',
         maSanBong: '',
         tenVaiTro: 'NHÂN VIÊN',
@@ -119,7 +120,7 @@ const StaffManagementPage = () => {
                 password: newStaffData.password,
                 hoTen: newStaffData.hoTen,
                 ngaySinh: newStaffData.ngaySinh ? new Date(newStaffData.ngaySinh).toISOString() : '',
-                email: newStaffData.username,
+                email: newStaffData.email,
                 gioiTinh: newStaffData.gioiTinh,
                 soDienThoai: newStaffData.soDienThoai,
                 tenVaiTro: 'Nhân viên',
@@ -211,7 +212,8 @@ const StaffManagementPage = () => {
             <MenuItem value="Khác">Khác</MenuItem>
         </Select>
     </FormControl>
-    <TextField margin="dense" name="username" label="Tên đăng nhập (email)" type="email" fullWidth variant="standard" onChange={handleInputChange} required />
+    <TextField margin="dense" name="username" label="Tên đăng nhập" type="text" fullWidth variant="standard" onChange={handleInputChange} required />
+    <TextField margin="dense" name="email" label="Email" type="email" fullWidth variant="standard" onChange={handleInputChange} required />
     <TextField margin="dense" name="password" label="Mật khẩu" type="password" fullWidth variant="standard" onChange={handleInputChange} required />
     <TextField margin="dense" name="ngaySinh" label="Ngày sinh" type="date" fullWidth variant="standard" onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
     <FormControl fullWidth margin="dense" variant="standard" required>
