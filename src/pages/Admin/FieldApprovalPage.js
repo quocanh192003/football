@@ -126,7 +126,7 @@ const FieldApprovalPage = () => {
                                                 variant="contained"
                                                 color="error"
                                                 size="small"
-                                                onClick={() => handleApproval(field.id, false)}
+                                                onClick={() => handleApproval(field.maSanBong, false)}
                                             >
                                                 Reject
                                             </Button>

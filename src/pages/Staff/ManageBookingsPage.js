@@ -28,6 +28,7 @@ const getPaymentStatusChipColor = (status) => {
 
 const ManageBookingsPage = () => {
     const [bookings, setBookings] = useState([]);
+    const [customers, setCustomers] = useState({}); // Cache customer data
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -52,7 +53,14 @@ const ManageBookingsPage = () => {
                 params: { status: currentTab }
             });
             if (response.data.isSuccess) {
-                setBookings(response.data.result || []);
+                const bookingsData = response.data.result || [];
+                console.log('Booking data structure:', bookingsData[0]); // Debug log
+                console.log('Customer fields available:', bookingsData[0] ? Object.keys(bookingsData[0]).filter(key => key.toLowerCase().includes('khach') || key.toLowerCase().includes('customer') || key.toLowerCase().includes('phone') || key.toLowerCase().includes('ten') || key.toLowerCase().includes('ho')) : []);
+                setBookings(bookingsData);
+                
+                // Fetch customer details for each unique customer ID
+                const uniqueCustomerIds = [...new Set(bookingsData.map(b => b.maKhachHang).filter(Boolean))];
+                await fetchCustomerDetails(uniqueCustomerIds);
             } else {
                 setBookings([]);
             }
@@ -67,6 +75,85 @@ const ManageBookingsPage = () => {
             setLoading(false);
         }
     }, [currentTab]);
+
+    // Function to fetch customer details
+    const fetchCustomerDetails = async (customerIds) => {
+        const customerData = {};
+        try {
+            let allUsers = [];
+            
+            // Thử nhiều API endpoints khác nhau
+            const apiEndpoints = [
+                '/api/User/get-all-user',
+                '/api/users/get-all',
+                '/api/get-all-users',
+                '/api/users',
+                '/api/user/get-all'
+            ];
+            
+            for (const endpoint of apiEndpoints) {
+                try {
+                    console.log(`Trying endpoint: ${endpoint}`);
+                    const response = await axiosInstance.get(endpoint);
+                    console.log(`Response from ${endpoint}:`, response.data);
+                    
+                    if (response.data.isSuccess && response.data.result) {
+                        allUsers = response.data.result;
+                        console.log(`Successfully got users from ${endpoint}:`, allUsers);
+                        break;
+                    }
+                } catch (err) {
+                    console.log(`Failed endpoint ${endpoint}:`, err.response?.status);
+                    continue;
+                }
+            }
+            
+            if (allUsers.length > 0) {
+                for (const customerId of customerIds) {
+                    const user = allUsers.find(u => 
+                        u.id === customerId || 
+                        u.Id === customerId ||
+                        u.userId === customerId ||
+                        u.UserId === customerId
+                    );
+                    
+                    if (user) {
+                        customerData[customerId] = {
+                            name: user.hoTen || user.HoTen || user.fullName || user.FullName || user.name || user.Name || user.userName || user.UserName || 'Unknown',
+                            phone: user.soDienThoai || user.SoDienThoai || user.phoneNumber || user.PhoneNumber || user.phone || user.Phone || '--'
+                        };
+                        console.log(`Found customer ${customerId}:`, customerData[customerId]);
+                    } else {
+                        console.log(`Customer not found: ${customerId}`);
+                        customerData[customerId] = {
+                            name: customerId.substring(0, 8) + '...',
+                            phone: '--'
+                        };
+                    }
+                }
+            } else {
+                console.log('No users found from any endpoint');
+                // Fallback: just show customer ID
+                for (const customerId of customerIds) {
+                    customerData[customerId] = {
+                        name: customerId.substring(0, 8) + '...',
+                        phone: '--'
+                    };
+                }
+            }
+        } catch (err) {
+            console.log('Error fetching customer details:', err);
+            // Fallback: just show customer ID
+            for (const customerId of customerIds) {
+                customerData[customerId] = {
+                    name: customerId.substring(0, 8) + '...',
+                    phone: '--'
+                };
+            }
+        }
+        console.log('Final customer data:', customerData);
+        setCustomers(prev => ({ ...prev, ...customerData }));
+    };
 
     useEffect(() => {
         fetchBookings();
@@ -176,11 +263,11 @@ const ManageBookingsPage = () => {
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Customer</TableCell>
+                                    <TableCell>Customer Name</TableCell>
                                     <TableCell>Phone</TableCell>
-                                    <TableCell>Field</TableCell>
                                     <TableCell>Pitch</TableCell>
-                                    <TableCell>Date</TableCell>
+                                    <TableCell>Order Date</TableCell>
+                                    <TableCell>Booking Date</TableCell>
                                     <TableCell>Time</TableCell>
                                     <TableCell>Total Price</TableCell>
                                     <TableCell>Booking Status</TableCell>
@@ -191,13 +278,14 @@ const ManageBookingsPage = () => {
                             <TableBody>
                                 {bookings.length > 0 ? bookings.map((booking) => {
                                     const detail = booking.chiTietDonDatSans && booking.chiTietDonDatSans[0];
+                                    const customer = customers[booking.maKhachHang];
                                     return (
                                         <TableRow key={booking.maDatSan}>
-                                            <TableCell>{booking.maKhachHang || '--'}</TableCell>
-                                            <TableCell>{'--'}</TableCell>
-                                            <TableCell>{detail?.maSanBong || '--'}</TableCell>
+                                            <TableCell>{customer?.name || booking.tenKhachHang || booking.hoTen || booking.maKhachHang || '--'}</TableCell>
+                                            <TableCell>{customer?.phone || booking.soDienThoai || booking.phoneNumber || '--'}</TableCell>
                                             <TableCell>{detail?.maSanCon || '--'}</TableCell>
                                             <TableCell>{safeFormatDate(booking.ngayDat)}</TableCell>
+                                            <TableCell>{detail?.ngayDat ? safeFormatDate(detail.ngayDat) : (detail?.ngay ? safeFormatDate(detail.ngay) : (detail?.thu ? detail.thu : '--'))}</TableCell>
                                             <TableCell>{detail ? `${detail.gioBatDau} - ${detail.gioKetThuc}` : '--'}</TableCell>
                                             <TableCell>{booking.tongTien?.toLocaleString() || '--'} VNĐ</TableCell>
                                             <TableCell>

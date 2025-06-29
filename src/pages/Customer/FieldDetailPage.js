@@ -102,6 +102,11 @@ const FieldDetailPage = () => {
     if (!selectedSlot) return;
     setError('');
     setSuccess('');
+    
+    // Tìm tên sân con từ subFields
+    const subField = subFields.find(sf => sf.maSanCon === selectedSlot.maSanCon);
+    const tenSanCon = subField?.tenSanCon || selectedSlot.maSanCon;
+    
     // Điều hướng sang trang xác nhận booking, truyền thông tin slot đã chọn
     navigate('/customer/booking-confirmation', {
       state: {
@@ -109,8 +114,9 @@ const FieldDetailPage = () => {
           fieldId: field.maSanBong,
           fieldName: field.tenSanBong,
           pitchId: selectedSlot.maSanCon,
-          pitchName: selectedSlot.maSanCon,
+          pitchName: tenSanCon, // Sử dụng tên sân con thay vì mã
           date: new Date().toISOString().slice(0, 10), // hoặc lấy ngày từ slot nếu có
+          dayOfWeek: selectedSlot.thu, // Truyền thứ từ slot
           startTime: selectedSlot.gioBatDau,
           endTime: selectedSlot.gioKetThuc,
           price: selectedSlot.giaThue || 0,
@@ -128,7 +134,7 @@ const FieldDetailPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, flexWrap: 'wrap' }}>
           <Avatar
             variant="rounded"
-            src={field?.hinhAnh || '/default-field.jpg'}
+            src={field?.hinhAnhs?.[0]?.urlHinhAnh || '/default-field.jpg'}
             alt={field?.tenSanBong}
             sx={{ width: 96, height: 96, boxShadow: 2, border: '2px solid #1976d2', bgcolor: '#fff' }}
           >
@@ -145,12 +151,18 @@ const FieldDetailPage = () => {
           {schedules.length === 0 && (
             <Grid item xs={12}><Alert severity="info">Không có khung giờ nào cho sân này.</Alert></Grid>
           )}
-          {schedules.map((slot, idx) => (
+          {schedules.map((slot, idx) => {
+            // Tìm tên sân con từ subFields
+            const subField = subFields.find(sf => sf.maSanCon === slot.maSanCon);
+            const tenSanCon = subField?.tenSanCon || slot.maSanCon;
+            
+            return (
             <Grid item xs={12} sm={4} key={slot.mainChiSan}>
               <Fade in timeout={400 + idx * 80}>
                 <Card sx={slotCardStyle(selectedSlot === slot)} onClick={() => slot.trangThai === 'AVAILABLE' && setSelectedSlot(slot)}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600 }}>{slot.maSanCon}</Typography>
+                    <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600 }}>{tenSanCon}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>Ngày: <b>{slot.thu}</b></Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>Khung giờ: <b>{slot.gioBatDau} - {slot.gioKetThuc}</b></Typography>
                     <Typography variant="body2">Giá: <b style={{ color: '#388e3c' }}>{slot.giaThue ? slot.giaThue.toLocaleString() : '---'}đ</b></Typography>
                     <Chip label={slot.trangThai === 'BOOKED' ? 'Đã đặt' : 'Còn trống'} color={slot.trangThai === 'BOOKED' ? 'error' : 'success'} size="small" sx={{ mt: 1 }} />
@@ -168,7 +180,8 @@ const FieldDetailPage = () => {
                 </Card>
               </Fade>
             </Grid>
-          ))}
+            );
+          })}
         </Grid>
         <Box mt={5} textAlign="center">
           <Button

@@ -16,7 +16,8 @@ const ConfirmPaymentPage = () => {
         // Lấy danh sách đơn đã xác nhận nhưng chưa thanh toán
         const res = await axiosInstance.get('/api/order/get-all-order-by-status', { params: { status: 'CONFIRMED' } });
         if (res.data.isSuccess) {
-          setBookings((res.data.result || []).filter(b => b.trangThaiTT !== 'PAID'));
+          // Chỉ lấy các đơn có trạng thái thanh toán là "waiting for payment"
+          setBookings((res.data.result || []).filter(b => b.trangThaiTT === 'waiting for payment'));
         } else {
           setError(res.data.errorMessages.join(', '));
         }
@@ -77,7 +78,7 @@ const ConfirmPaymentPage = () => {
                     <TableCell>{b.ngayDat ? new Date(b.ngayDat).toLocaleDateString() : '--'}</TableCell>
                     <TableCell>{detail ? `${detail.gioBatDau} - ${detail.gioKetThuc}` : '--'}</TableCell>
                     <TableCell>{b.tongTien?.toLocaleString() || '--'}</TableCell>
-                    <TableCell><Chip label={b.trangThaiTT} color={b.trangThaiTT === 'PAID' ? 'success' : 'warning'} size="small" /></TableCell>
+                    <TableCell><Chip label={b.trangThaiTT} color={b.trangThaiTT === 'PAID' ? 'success' : (b.trangThaiTT === 'waiting for payment' ? 'warning' : 'default')} size="small" /></TableCell>
                     <TableCell>
                       <Button variant="contained" color="success" size="small" onClick={() => handleConfirmPayment(b.maDatSan)}>
                         Xác nhận thanh toán
@@ -86,7 +87,7 @@ const ConfirmPaymentPage = () => {
                   </TableRow>
                 );
               }) : (
-                <TableRow><TableCell colSpan={8} align="center">Không có đơn nào cần xác nhận thanh toán.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} align="center">Không có đơn nào đang chờ xác nhận thanh toán.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

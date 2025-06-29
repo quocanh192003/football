@@ -57,12 +57,14 @@ const OwnerDashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                // Staff
-                const staffRes = await axiosInstance.get('/api/employee-get');
+                // Staff - lấy nhân viên theo mã chủ sân
+                const staffRes = await axiosInstance.get('/api/get-employee-by-chusan');
                 const staffList = staffRes.data.result || [];
                 setStaff(staffList.map(s => ({
-                    name: s.fullName || s.hoTen || s.tenNhanVien || s.name || 'No Name',
-                    status: s.status || s.trangThai || ''
+                    name: s.hoTen || s.fullName || s.tenNhanVien || s.name || 'No Name',
+                    status: s.status || s.trangThai || 'Active',
+                    email: s.email || '',
+                    phone: s.soDienThoai || ''
                 })));
 
                 // Fields
@@ -322,7 +324,16 @@ const OwnerDashboard = () => {
                                     <ListItem><ListItemText primary="No staff found" /></ListItem>
                                 ) : staff.map((s, index) => (
                                     <ListItem key={index} divider>
-                                        <ListItemText primary={s.name} secondary={s.status} />
+                                        <ListItemText 
+                                            primary={s.name} 
+                                            secondary={
+                                                <Box component="div">
+                                                    {s.email && <Typography variant="body2" color="text.secondary">Email: {s.email}</Typography>}
+                                                    {s.phone && <Typography variant="body2" color="text.secondary">Phone: {s.phone}</Typography>}
+                                                    {s.status && <Typography variant="body2" color="primary">Status: {s.status}</Typography>}
+                                                </Box>
+                                            } 
+                                        />
                                     </ListItem>
                                 ))}
                             </List>

@@ -29,7 +29,7 @@ const StaffFieldListPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" fontWeight={700} color="success.main" gutterBottom textAlign="center">Chọn sân để đặt</Typography>
+      <Typography variant="h4" fontWeight={700} color="success.main" gutterBottom textAlign="center">Chọn sân để thêm lịch sân</Typography>
       <Grid container spacing={4} justifyContent="center">
         {fields.map(field => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={field.maSanBong}>

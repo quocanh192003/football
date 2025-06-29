@@ -59,8 +59,8 @@ const StaffManagementPage = () => {
     const fetchStaff = async () => {
         try {
             setLoading(true);
-            // Assuming this endpoint gets staff for the logged-in owner
-            const response = await axiosInstance.get('/api/employee-get');
+            // Sử dụng API mới để lấy nhân viên theo chủ sân
+            const response = await axiosInstance.get('/api/get-employee-by-chusan');
             if (response.data.isSuccess) {
                 setStaff(response.data.result || []);
             } else {
@@ -92,7 +92,7 @@ const StaffManagementPage = () => {
                     // } else {
                     //     setError('');
                     // }
-                    setFields(response.data.result || []);
+                    setFields(filteredFields);
                 }
             } catch (e) { /* ignore */ }
         };

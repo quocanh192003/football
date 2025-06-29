@@ -32,7 +32,7 @@ const BookingConfirmationPage = () => {
                 {
                     maSanBong: bookingDetails.fieldId,
                     maSanCon: bookingDetails.pitchId,
-                    thu: getDayOfWeekInVietnamese(bookingDetails.date),
+                    thu: bookingDetails.dayOfWeek || getDayOfWeekInVietnamese(bookingDetails.date), // Ưu tiên lấy từ slot
                     gioBatDau: bookingDetails.startTime,
                     gioKetThuc: bookingDetails.endTime,
                 },
@@ -86,7 +86,7 @@ const BookingConfirmationPage = () => {
                                 </ListItem>
                                 <Divider />
                                 <ListItem>
-                                    <ListItemText primary="Ngày" secondary={new Date(bookingDetails.date).toLocaleDateString('vi-VN')} />
+                                    <ListItemText primary="Ngày" secondary={`${bookingDetails.dayOfWeek || getDayOfWeekInVietnamese(bookingDetails.date)} - ${new Date(bookingDetails.date).toLocaleDateString('vi-VN')}`} />
                                 </ListItem>
                                 <Divider />
                                 <ListItem>

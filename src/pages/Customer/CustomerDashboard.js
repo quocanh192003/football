@@ -63,7 +63,7 @@ const CustomerDashboard = () => {
                     {filteredFields.length > 0 ? (
                         filteredFields.map((field) => (
                             <Grid item key={field.maSanBong} xs={12} sm={6} md={4}>
-                                <Card sx={{ height: 370, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 3 }}>
+                                <Card sx={{ height: 370, width: 300 ,display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 3 }}>
                                     <CardMedia
                                         component="img"
                                         height="160"
@@ -75,8 +75,11 @@ const CustomerDashboard = () => {
                                         <Typography gutterBottom variant="h5" component="h2" sx={{ fontSize: 20, fontWeight: 600, minHeight: 32 }}>
                                             {field.tenSanBong}
                                         </Typography>
-                                        <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>
+                                        <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>Địa chỉ:
                                             {field.diaChi}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>Mô tả:
+                                            {field.moTa || 'No description available.'}
                                         </Typography>
                                     </CardContent>
                                     <Box sx={{ p: 2, pt: 0 }}>
