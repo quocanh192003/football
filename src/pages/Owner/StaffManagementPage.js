@@ -53,6 +53,7 @@ const StaffManagementPage = () => {
     const [verifyCode, setVerifyCode] = useState('');
     const [verifyError, setVerifyError] = useState('');
     const [pendingVerifyEmail, setPendingVerifyEmail] = useState('');
+    const [success, setSuccess] = useState('');
 
     const fetchStaff = async () => {
         try {
@@ -127,10 +128,7 @@ const StaffManagementPage = () => {
             const response = await axiosInstance.post('/api/chusan-create-employee', submitData);
             if (response.data.isSuccess) {
                 handleClose();
-                // Điều hướng sang trang xác thực email
-                setTimeout(() => {
-                    navigate('/email-verification', { state: { email: newStaffData.username } });
-                }, 500);
+                setSuccess('Tạo tài khoản nhân viên thành công');
                 fetchStaff();
             } else {
                 setError(response.data.errorMessages.join(', '));
@@ -166,6 +164,7 @@ const StaffManagementPage = () => {
                 </Button>
             </Box>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
             {loading ? <CircularProgress /> : (
                 <TableContainer component={Paper}>
                     <Table>

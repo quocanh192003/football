@@ -137,6 +137,12 @@ const StaffFieldDetailPage = () => {
       });
       setCreateSuccess('Tạo lịch thành công!');
       setCreateDialogOpen(false);
+      
+      // Hiển thị thông báo thành công và điều hướng sau 2 giây
+      setTimeout(() => {
+        navigate('/staff/fields');
+      }, 2000);
+      
       // Reload schedules
       setLoading(true);
       const res = await axiosInstance.get('/api/get-all-schedule');
