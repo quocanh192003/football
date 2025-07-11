@@ -27,6 +27,7 @@ import FieldDetailsPage from '../pages/FieldDetailsPage';
 import FieldDetailPage from '../pages/Customer/FieldDetailPage';
 import StaffFieldListPage from '../pages/Staff/StaffFieldListPage';
 import StaffFieldDetailPage from '../pages/Staff/StaffFieldDetailPage';
+import UpdateSchedulePage from '../pages/Staff/UpdateSchedulePage';
 import ProfilePage from '../pages/Customer/ProfilePage';
 import OwnerProfilePage from '../pages/Owner/ProfilePage';
 import StaffProfilePage from '../pages/Staff/ProfilePage';
@@ -77,6 +78,7 @@ const AppRouter = () => {
             <Route path="/staff" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><StaffDashboard /></ProtectedRoute>} />
             <Route path="/staff/fields" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><StaffFieldListPage /></ProtectedRoute>} />
             <Route path="/staff/fields/:fieldId" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><StaffFieldDetailPage /></ProtectedRoute>} />
+            <Route path="/staff/update-schedule/:scheduleId" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><UpdateSchedulePage /></ProtectedRoute>} />
             <Route path="/staff/manage-bookings" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><ManageBookingsPage /></ProtectedRoute>} />
             <Route path="/staff/confirm-payment" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><ConfirmPaymentPage /></ProtectedRoute>} />
             <Route path="/staff/profile" element={<ProtectedRoute allowedRoles={['NHÂN VIÊN']}><StaffProfilePage /></ProtectedRoute>} />

@@ -14,7 +14,8 @@ import {
     CssBaseline,
     Box,
     Button,
-    Divider
+    Divider,
+    Avatar
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import PeopleIcon from '@mui/icons-material/People';
@@ -22,6 +23,7 @@ import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import SportsFootballIcon from '@mui/icons-material/SportsFootball';
 
 const drawerWidth = 240;
 
@@ -113,13 +115,34 @@ const MainLayout = ({ children }) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                        {user?.role} Dashboard
+                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SportsFootballIcon sx={{ color: '#4caf50', fontSize: 28 }} />
+                        <Box>
+                            <Typography variant="h6" component="span" sx={{ fontWeight: 700, color: '#4caf50' }}>
+                                Sân bóng 24h
+                            </Typography>
+                            <Typography variant="caption" component="div" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', lineHeight: 1 }}>
+                                {user?.role}
+                            </Typography>
+                        </Box>
                     </Typography>
-                    <Typography sx={{ mr: 2, fontWeight: 600, fontSize: 18 }}>
-                        {user?.fullName || user?.hoTen || user?.username || ''}
-                    </Typography>
-                    <Button color="inherit" onClick={handleLogout}>Logout</Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Avatar 
+                            sx={{ 
+                                width: 32, 
+                                height: 32,
+                                bgcolor: 'primary.light',
+                                fontSize: '14px',
+                                fontWeight: 600
+                            }}
+                        >
+                            {(user?.fullName || user?.hoTen || user?.username || user?.email || 'U').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Typography sx={{ fontWeight: 600, fontSize: 16, color: 'white' }}>
+                            {user?.fullName || user?.hoTen || user?.username || user?.email || 'User'}
+                        </Typography>
+                        <Button color="inherit" onClick={handleLogout}>Logout</Button>
+                    </Box>
                 </Toolbar>
             </AppBar>
             <Box

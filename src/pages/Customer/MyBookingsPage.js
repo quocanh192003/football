@@ -30,19 +30,20 @@ const MyBookingsPage = () => {
                     const orders = bookingsResponse.data.result || [];
                     const pitches = pitchesResponse.data.result || [];
 
-                    // Create a lookup map for pitch names
-                    const pitchNameMap = pitches.reduce((map, pitch) => {
-                        map[pitch.id] = pitch.tenSanBong;
+                    // Create a lookup map for sub-pitch names using maSanCon
+                    const subPitchNameMap = pitches.reduce((map, pitch) => {
+                        map[pitch.maSanCon] = pitch.tenSanCon || pitch.maSanCon;
                         return map;
                     }, {});
 
-                    // Flatten the booking data and add pitch names
+                    // Flatten the booking data and add sub-pitch names
                     const flattenedBookings = orders.flatMap(order =>
                         order.chiTietDonDatSans.map(detail => ({
                             bookingDetailId: detail.id,
                             orderId: order.maDatSan,
                             pitchId: detail.maSanBong,
-                            pitchName: pitchNameMap[detail.maSanBong] || 'Unknown Pitch',
+                            subPitchId: detail.maSanCon,
+                            pitchName: subPitchNameMap[detail.maSanCon] || detail.maSanCon || 'Unknown Sub-Pitch',
                             orderDate: order.ngayDat,
                             dayOfWeek: detail.thu,
                             startTime: detail.gioBatDau,
@@ -139,11 +140,12 @@ const MyBookingsPage = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Pitch Name</TableCell>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Time</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell>Tên sân con</TableCell>
+                            <TableCell>Ngày đặt</TableCell>
+                            <TableCell>Thứ</TableCell>
+                            <TableCell>Khung giờ</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -153,6 +155,7 @@ const MyBookingsPage = () => {
                                 <TableRow key={booking.bookingDetailId}>
                                     <TableCell>{booking.pitchName}</TableCell>
                                     <TableCell>{new Date(booking.orderDate).toLocaleDateString()}</TableCell>
+                                    <TableCell>{booking.dayOfWeek}</TableCell>
                                     <TableCell>{`${booking.startTime} - ${booking.endTime}`}</TableCell>
                                     <TableCell>
                                         <Chip label={booking.status} color={booking.status === 'DAXACNHAN' ? 'success' : 'default'} />
@@ -173,7 +176,7 @@ const MyBookingsPage = () => {
                             );
                         }) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center">No bookings found.</TableCell>
+                                <TableCell colSpan={6} align="center">No bookings found.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

@@ -3,15 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Grid, Card, CardContent, Button, CircularProgress, Alert, Chip, Fade, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import axiosInstance from '../../api/axiosInstance';
 
-const slotCardStyle = (selected) => ({
-  border: selected ? '2px solid #388e3c' : '1px solid #e0e0e0',
+const slotCardStyle = () => ({
+  border: '1px solid #e0e0e0',
   borderRadius: 3,
-  boxShadow: selected ? '0 4px 24px 0 rgba(56, 142, 60, 0.15)' : '0 2px 8px 0 rgba(0,0,0,0.07)',
+  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.07)',
   transition: 'all 0.25s',
   cursor: 'pointer',
   position: 'relative',
   overflow: 'hidden',
-  background: selected ? 'linear-gradient(90deg, #e8f5e9 0%, #fff 100%)' : '#fff',
+  background: '#fff',
   '&:hover': {
     boxShadow: '0 6px 24px 0 rgba(56, 142, 60, 0.18)',
     transform: 'scale(1.03)',
@@ -25,7 +25,6 @@ const StaffFieldDetailPage = () => {
   const [field, setField] = useState(null);
   const [subFields, setSubFields] = useState([]);
   const [schedules, setSchedules] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -76,24 +75,7 @@ const StaffFieldDetailPage = () => {
   }, [fieldId]);
 
   const handleBook = () => {
-    if (!selectedSlot) return;
-    setError('');
-    setSuccess('');
-    navigate('/staff/booking-confirmation', {
-      state: {
-        bookingDetails: {
-          fieldId: field.maSanBong,
-          fieldName: field.tenSanBong,
-          pitchId: selectedSlot.maSanCon,
-          pitchName: selectedSlot.maSanCon,
-          date: new Date().toISOString().slice(0, 10),
-          dayOfWeek: selectedSlot.thu, // Truyền thứ từ slot
-          startTime: selectedSlot.gioBatDau,
-          endTime: selectedSlot.gioKetThuc,
-          price: selectedSlot.giaThue || 0,
-        }
-      }
-    });
+    // Removed as not needed for staff update functionality
   };
 
   const handleOpenCreateDialog = () => {
@@ -194,9 +176,9 @@ const StaffFieldDetailPage = () => {
             const tenSanCon = subField?.tenSanCon || slot.maSanCon;
             
             return (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={slot.mainChiSan}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={slot.maLichSan}>
               <Fade in timeout={400 + idx * 80}>
-                <Card sx={slotCardStyle(selectedSlot === slot)} onClick={() => slot.trangThai === 'AVAILABLE' && setSelectedSlot(slot)}>
+                <Card sx={slotCardStyle()}>
                   <CardContent>
                     <Typography variant="h6" sx={{ color: '#388e3c', fontWeight: 600 }}>{tenSanCon}</Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>Ngày: <b>{slot.thu}</b></Typography>
@@ -205,13 +187,15 @@ const StaffFieldDetailPage = () => {
                     <Chip label={slot.trangThai === 'BOOKED' ? 'Đã đặt' : 'Còn trống'} color={slot.trangThai === 'BOOKED' ? 'error' : 'success'} size="small" sx={{ mt: 1 }} />
                     <Button
                       fullWidth
-                      variant={selectedSlot === slot ? 'contained' : 'outlined'}
-                      color={selectedSlot === slot ? 'success' : 'primary'}
-                      sx={{ mt: 2, fontWeight: 600, letterSpacing: 1, transition: 'transform 0.2s', transform: selectedSlot === slot ? 'scale(1.05)' : 'none', boxShadow: selectedSlot === slot ? 2 : undefined }}
-                      disabled={slot.trangThai === 'BOOKED'}
-                      onClick={e => { e.stopPropagation(); if (slot.trangThai === 'AVAILABLE') setSelectedSlot(slot); }}
+                      variant="contained"
+                      color="primary"
+                      sx={{ mt: 2, fontWeight: 600, letterSpacing: 1, transition: 'transform 0.2s', boxShadow: 2 }}
+                      onClick={e => { 
+                        e.stopPropagation(); 
+                        navigate(`/staff/update-schedule/${slot.maLichSan}`);
+                      }}
                     >
-                      {selectedSlot === slot ? 'Đã chọn' : 'Chọn khung giờ'}
+                      Update sân
                     </Button>
                   </CardContent>
                 </Card>
@@ -220,18 +204,6 @@ const StaffFieldDetailPage = () => {
             );
           })}
         </Grid>
-        <Box mt={5} textAlign="center">
-          <Button
-            variant="contained"
-            color="success"
-            size="large"
-            sx={{ px: 6, py: 1.5, fontWeight: 700, fontSize: 20, borderRadius: 3, boxShadow: 3, transition: 'all 0.2s', ':hover': { background: '#43a047', transform: 'scale(1.04)' } }}
-            disabled={!selectedSlot}
-            onClick={handleBook}
-          >
-            ĐẶT SÂN NGAY
-          </Button>
-        </Box>
         {/* Dialog tạo lịch trống */}
         <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog}>
           <DialogTitle>Tạo lịch trống mới</DialogTitle>

@@ -1,22 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, TextField, Grid, Card, CardContent, CardMedia, CircularProgress, Alert, Button } from '@mui/material';
+import { Container, Typography, Box, TextField, Grid, Card, CardContent, CardMedia, CircularProgress, Alert, Button, Rating } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 
 const CustomerDashboard = () => {
     const [fields, setFields] = useState([]);
+    const [ratings, setRatings] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchFields = async () => {
+        const fetchFieldsAndRatings = async () => {
             try {
                 setLoading(true);
                 const response = await axiosInstance.get('/api/football/get-all-football');
                 if (response.data.isSuccess) {
-                    setFields(response.data.result || []);
+                    const fieldsData = response.data.result || [];
+                    setFields(fieldsData);
+                    
+                    // Fetch ratings for each field
+                    const ratingsData = {};
+                    await Promise.all(
+                        fieldsData.map(async (field) => {
+                            try {
+                                const ratingResponse = await axiosInstance.get(`/api/get-evaluate-by-id-san-bong/${field.maSanBong}`);
+                                if (ratingResponse.data.isSuccess && ratingResponse.data.result && ratingResponse.data.result.length > 0) {
+                                    const evaluateData = ratingResponse.data.result[0];
+                                    ratingsData[field.maSanBong] = {
+                                        averageRating: evaluateData.danhGiaThongKe?.trungBinhSoSao || 0,
+                                        totalReviews: evaluateData.danhGiaThongKe?.soLuongDanhGia || 0
+                                    };
+                                } else {
+                                    ratingsData[field.maSanBong] = {
+                                        averageRating: 0,
+                                        totalReviews: 0
+                                    };
+                                }
+                            } catch (err) {
+                                console.error(`Failed to fetch rating for field ${field.maSanBong}:`, err);
+                                ratingsData[field.maSanBong] = {
+                                    averageRating: 0,
+                                    totalReviews: 0
+                                };
+                            }
+                        })
+                    );
+                    setRatings(ratingsData);
                 } else {
                     setError(response.data.errorMessages.join(', '));
                 }
@@ -26,7 +57,7 @@ const CustomerDashboard = () => {
                 setLoading(false);
             }
         };
-        fetchFields();
+        fetchFieldsAndRatings();
     }, []);
 
     const filteredFields = fields.filter(field =>
@@ -63,7 +94,7 @@ const CustomerDashboard = () => {
                     {filteredFields.length > 0 ? (
                         filteredFields.map((field) => (
                             <Grid item key={field.maSanBong} xs={12} sm={6} md={4}>
-                                <Card sx={{ height: 370, width: 300 ,display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 3 }}>
+                                <Card sx={{ height: 430, width: 300 ,display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 3 }}>
                                     <CardMedia
                                         component="img"
                                         height="160"
@@ -78,9 +109,28 @@ const CustomerDashboard = () => {
                                         <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>Địa chỉ:
                                             {field.diaChi}
                                         </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                            📞 {field.soDienThoai}
+                                        </Typography>
                                         <Typography sx={{ fontSize: 15, color: 'text.secondary', minHeight: 24 }}>Mô tả:
                                             {field.moTa || 'No description available.'}
                                         </Typography>
+                                       
+                                                          
+                                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                            <Rating 
+                                                value={ratings[field.maSanBong]?.averageRating || 0} 
+                                                readOnly 
+                                                precision={0.1}
+                                                size="small"
+                                            />
+                                            <Typography sx={{ ml: 1, fontSize: 14, color: 'text.secondary' }}>
+                                                {ratings[field.maSanBong]?.averageRating ? 
+                                                    `${ratings[field.maSanBong].averageRating.toFixed(1)} (${ratings[field.maSanBong].totalReviews} đánh giá)` : 
+                                                    'Chưa có đánh giá'
+                                                }
+                                            </Typography>
+                                        </Box>
                                     </CardContent>
                                     <Box sx={{ p: 2, pt: 0 }}>
                                         <Button size="small" variant="contained" fullWidth onClick={() => handleViewDetails(field)}>

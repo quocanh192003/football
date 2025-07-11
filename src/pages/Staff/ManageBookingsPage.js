@@ -29,6 +29,7 @@ const getPaymentStatusChipColor = (status) => {
 const ManageBookingsPage = () => {
     const [bookings, setBookings] = useState([]);
     const [customers, setCustomers] = useState({}); // Cache customer data
+    const [staffFields, setStaffFields] = useState([]); // Sân bóng của nhân viên
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -44,27 +45,89 @@ const ManageBookingsPage = () => {
     // Create a reverse map for finding tab index from status string
     const statusToTabIndex = Object.fromEntries(Object.entries(tabStatuses).map(([k, v]) => [v, parseInt(k)]));
 
+    // Fetch staff's assigned fields
+    const fetchStaffFields = useCallback(async () => {
+        try {
+            console.log('Fetching staff fields...');
+            const response = await axiosInstance.get('/api/football/get-football-by-staff');
+            console.log('Staff fields response:', response.data);
+            
+            if (response.data.isSuccess && Array.isArray(response.data.result)) {
+                const fields = response.data.result;
+                setStaffFields(fields);
+                console.log('Staff assigned fields:', fields.map(f => f.maSanBong));
+                return fields;
+            } else {
+                console.log('No fields assigned to this staff');
+                setStaffFields([]);
+                return [];
+            }
+        } catch (err) {
+            console.error('Error fetching staff fields:', err);
+            setError('Không thể tải danh sách sân được phân công.');
+            setStaffFields([]);
+            return [];
+        }
+    }, []);
+
     const fetchBookings = useCallback(async () => {
         setLoading(true);
         setError('');
         setSuccess('');
         try {
+            // Lấy danh sách sân của nhân viên trước
+            const assignedFields = await fetchStaffFields();
+            
+            if (assignedFields.length === 0) {
+                console.log('Staff has no assigned fields');
+                setBookings([]);
+                setLoading(false);
+                return;
+            }
+            
+            const assignedFieldIds = assignedFields.map(f => f.maSanBong);
+            console.log('Assigned field IDs:', assignedFieldIds);
+            
+            // Lấy tất cả bookings theo status
             const response = await axiosInstance.get('/api/order/get-all-order-by-status', {
                 params: { status: currentTab }
             });
+            
             if (response.data.isSuccess) {
-                const bookingsData = response.data.result || [];
-                console.log('Booking data structure:', bookingsData[0]); // Debug log
-                console.log('Customer fields available:', bookingsData[0] ? Object.keys(bookingsData[0]).filter(key => key.toLowerCase().includes('khach') || key.toLowerCase().includes('customer') || key.toLowerCase().includes('phone') || key.toLowerCase().includes('ten') || key.toLowerCase().includes('ho')) : []);
-                setBookings(bookingsData);
+                const allBookings = response.data.result || [];
+                console.log('All bookings:', allBookings.length);
+                console.log('Sample booking structure:', allBookings[0]);
+                
+                // Lọc chỉ những booking thuộc sân của nhân viên
+                const filteredBookings = allBookings.filter(booking => {
+                    // Kiểm tra trong chi tiết đơn đặt sân
+                    if (booking.chiTietDonDatSans && booking.chiTietDonDatSans.length > 0) {
+                        return booking.chiTietDonDatSans.some(detail => 
+                            assignedFieldIds.includes(detail.maSanBong)
+                        );
+                    }
+                    
+                    // Kiểm tra trực tiếp trên booking nếu có field
+                    if (booking.maSanBong) {
+                        return assignedFieldIds.includes(booking.maSanBong);
+                    }
+                    
+                    return false;
+                });
+                
+                console.log('Filtered bookings for staff:', filteredBookings.length);
+                console.log('Filtered bookings:', filteredBookings);
+                
+                setBookings(filteredBookings);
                 
                 // Fetch customer details for each unique customer ID
-                const uniqueCustomerIds = [...new Set(bookingsData.map(b => b.maKhachHang).filter(Boolean))];
+                const uniqueCustomerIds = [...new Set(filteredBookings.map(b => b.maKhachHang).filter(Boolean))];
                 await fetchCustomerDetails(uniqueCustomerIds);
             } else {
                 setBookings([]);
             }
         } catch (err) {
+            console.error('Error fetching bookings:', err);
             if (err.response && err.response.status === 404) {
                 setBookings([]); // If API returns 404, it means no bookings for this status
             } else {
@@ -74,7 +137,7 @@ const ManageBookingsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentTab]);
+    }, [currentTab, fetchStaffFields]);
 
     // Function to fetch customer details
     const fetchCustomerDetails = async (customerIds) => {
@@ -258,8 +321,18 @@ const ManageBookingsPage = () => {
 
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><CircularProgress /></Box>
+                ) : staffFields.length === 0 ? (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                        Bạn chưa được phân công quản lý sân bóng nào. Vui lòng liên hệ quản lý để được phân công.
+                    </Alert>
                 ) : (
-                    <TableContainer component={Paper}>
+                    <>
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Hiển thị đơn đặt sân cho các sân được phân công: {staffFields.map(f => f.tenSanBong).join(', ')}
+                            </Typography>
+                        </Box>
+                        <TableContainer component={Paper}>
                         <Table>
                             <TableHead>
                                 <TableRow>
@@ -299,12 +372,15 @@ const ManageBookingsPage = () => {
                                     );
                                 }) : (
                                     <TableRow>
-                                        <TableCell colSpan={10} align="center">No bookings found for this status.</TableCell>
+                                        <TableCell colSpan={10} align="center">
+                                            Không có đơn đặt sân nào với trạng thái "{currentTab}" cho các sân được phân công.
+                                        </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    </>
                 )}
             </Box>
         </Container>
